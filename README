@@ -1,0 +1,61 @@
+NAME
+    svn_mirror_externals.sh
+
+SYNOPSIS
+    $ /path/to/svn_mirror_externals.sh --url=http://you.com/svn --init [...]
+    $ /path/to/svn_mirror_externals.sh [--url=http://you.com/svn] [--time]
+    $ $GIT_DIR/mirror-externals/apply-externals
+    $ $GIT_DIR/mirror-externals/rearrange-heads
+    $ $GIT_DIR/mirror-externals/reparent-heads
+    $ $GIT_DIR/mirror-externals/convert-tags
+  
+USAGE
+    Run this script from an empty directory (which will become a git
+    repository).
+
+    If you want to pass extra flags to git-svn fetch, eg --authors-file, add
+    them after the --init. The URL has to be the publically accessible
+    one that you used when creating the svn:external references. You *might*
+    be able to do the init command from a different URL, but this is untested.
+    The URL is only strictly required for the --init call. --time is vaguely
+    interesting for timing how long certain phases of the import take.
+    
+    You can run the phases individually if you want (useful for debugging)
+
+PHASES
+    apply-externals:
+        This phase detects all the svn:externals present in the repository
+        and propagates changes in the source objects to the directory
+        containing the svn:externals reference. This is done on a
+        commit-by-commit basis, so changesets on the external are propagated
+        individually (not squashed.) The only case where changes on the
+        external are squashed is on the first commit containing the external
+        reference.
+        
+    rearrange-heads:
+        This pass locates all individual "projects" in the repository
+        (subdirectories conforming to the standard svn layout) and converts
+        them to individual git heads (branches)
+        
+    reparent-heads:
+        This pass attempts to determine the ancestry of each branch in order
+        to recreate merge history. Only the creation point of the (svn) branch
+        is handled, later merge commits are not.
+        
+    convert-tags:
+        This pass converts any svn tags/ branches to git tags.
+        
+    
+KNOWN LIMITATIONS
+    This script will almost assuredly die horribly if your repo has any paths
+    with spaces (or other funky control characters) in them.
+
+    This script depends on the GNU userland (grep, probably others)
+
+    This script works on my repository. It might on yours too!
+
+
+AUTHOR
+    John Koleszar
+    jkoleszar@gmail.com
+    
