@@ -62,13 +62,23 @@ index_filter() {
             src_path=${url#${URL_BASE}}
             src_path=${src_path#/}
 
-            [ -f $WORK_DIR/ls-tree/$pinrev ] ||
-              git ls-tree -r $(find_rev ${pinrev#-}) > $WORK_DIR/ls-tree/$pinrev
-            grep $'\t'"$src_path" $WORK_DIR/ls-tree/$pinrev |  
-              sed "s;\t$src_path;\t$subdir;g"
+            [ -f $WORK_DIR/ls-tree/$pinrev/tree ] || {
+              mkdir -p $WORK_DIR/ls-tree/$pinrev
+              git ls-tree -r $(find_rev ${pinrev#-}) \
+                > $WORK_DIR/ls-tree/$pinrev/tree
+            }
+
+            [ -f $WORK_DIR/ls-tree/$pinrev/$src_path/grep ] || {
+              mkdir -p $WORK_DIR/ls-tree/$pinrev/$src_path
+              grep $'\t'"$src_path" $WORK_DIR/ls-tree/$pinrev/tree \
+                > $WORK_DIR/ls-tree/$pinrev/$src_path/grep
+            }
+
+            sed "s;\t$src_path;\t$subdir;g" \
+              < $WORK_DIR/ls-tree/$pinrev/$src_path/grep
         done < ${WORK_DIR}/tmp/$dir/externals
     done  | git update-index --index-info
-    rm -f $WORK_DIR/ls-tree/*
+    rm -rf $WORK_DIR/ls-tree/-r$SVN_REV
 }
 
 
